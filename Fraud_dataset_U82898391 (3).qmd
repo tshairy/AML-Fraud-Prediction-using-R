@@ -1,0 +1,142 @@
+---
+title: "Shairy_Tasnim_Project_R"
+format: html
+---
+
+## Project 1 AML and Fraud
+
+Observation - 1 Fraud Percentage by Location
+
+```{r}
+library(tidyverse)#Loading the tidyverse Package 
+library(httr) #Loading the httr package
+
+df <- read.csv("~/Desktop/AML File for R/fraud_dataset.csv") #
+
+
+```
+
+```{r}
+glimpse(data)  # Makes it possible to see every column in a data frame
+```
+
+```{r}
+library(tidymodels)  #loading all the necessary packages
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+#Creating a cross-tabulation with percentage calculations using dplyr
+cross_tab <- df %>%
+  group_by(location, fraud_label) %>%
+  summarise(count = n()) %>%
+  group_by(location) %>%
+  mutate(percentage = round((count / sum(count)) * 100, 1))
+
+# Print the cross-tabulation with percentage calculations
+print(cross_tab)
+
+```
+
+```{r}
+# Create a bar chart using ggplot2 to get an idea of Fraud by % in the following locations
+ggplot(cross_tab, aes(x = location, y = percentage, fill = fraud_label)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Bar Chart of Fraud Percentage by Location", y = "Percentage") +
+  theme_minimal()
+
+```
+
+```{r}
+# The following observation shows San Fransico has the highest percentage of fraud as based on the fraud lable we can see the barchart is more densely coloured with lighter shade of blue
+# Meanwhile Neywork has the lowesr percentage of fraud that has been reported
+```
+
+Observation -2 Fraud by Merchant Type
+
+```{r}
+cross_tab <- df %>%
+  group_by(merchant, fraud_label) %>%
+  summarise(count = n()) %>%
+  group_by(merchant) %>%
+  mutate(percentage = round((count / sum(count)) * 100, 1))
+
+print(cross_tab)
+```
+
+```{r}
+
+library(viridis) #Colour blind friendly map
+#Here we are using Facet Bar Chars since we have large numbers for catogories like Merchant, the Facted bar chart allows us to break down the info into smaller sub plot 
+# Here I decided to work with color palette therfor I've installed the color space package
+library(colorspace) 
+
+
+```
+
+```{r}
+library(ggplot2)
+library(viridis)
+
+# Convert "fraud_label" to a factor to treat it as discrete. I do not wannt to code it in a way that my fraud label is being indentified as contious for fraud which will give me a range.
+cross_tab$fraud_label <- as.factor(cross_tab$fraud_label)
+
+# Create a color-blind-friendly palette from the viridis package
+color_palette <- viridis_pal(option = "C")(length(levels(cross_tab$fraud_label)))
+
+ggplot(cross_tab, aes(x = merchant, y = percentage, fill = fraud_label)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Grouped Bar Chart of Fraud Percentage by Merchant",
+       x = "Merchant",
+       y = "Percentage") +
+  scale_fill_manual(values = color_palette) +  # Use the viridis color palette
+  theme_minimal()
+
+
+
+```
+
+```{r}
+#   I prefer observation 2 over 1 . I did not like how I did not use a group bar chart and how frad_label is being identified as a contiues variable therfor the data still looks untidy to me
+
+# There for I perfer my fraud_label to be discrete 0 or 1 not a range between 0-1 and I like the color blind friendly map
+
+# It is easier to analyse data better here, we can say both merchants ABC Corp and XYZ inc was had % of not commiting the fraud higher than comitting fraud. However ABC corp had more frauds reported in the data than XYZ inc
+```
+
+Observation #3 using Transaction amount and Age to Predict Future Fraud
+
+```{r}
+# Load the ggplot2 library
+library(ggplot2)
+
+# Create a data frame (replace 'data' with your actual data frame)
+# For example, if your data frame is named 'df', replace 'data' with 'df'
+data <- data.frame(
+  age = df$age,
+  transaction_amount = df$transaction_amount
+)
+
+# Create a boxplot for 'age' and 'transaction_amount'
+# Assuming 'data' is your data frame
+ggplot(data, aes(x = factor(1), y = age)) +
+  geom_boxplot(fill = "pink") +
+  labs(title = "Boxplot of Age") +
+  theme_minimal() +
+  theme(axis.text.x = element_blank())
+
+ggplot(data, aes(x = factor(1), y = transaction_amount)) +
+  geom_boxplot(fill = "lavender") +
+  labs(title = "Boxplot of Transaction Amount") +
+  theme_minimal() +
+  theme(axis.text.x = element_blank())
+
+```
+
+```{r}
+# I used two box plots to visualize my data as simplifed as possible to detect possible outliers and how my datas are skekwed in order to make comparisson fraud happening for age group and transaction amount. # Based on my analysis predicting fraud on transaction amount is easier to predict than age. Therefor transactions from 1500 and above are often makes it worth while to ivestigate if transaction is fraud or not. 
+
+
+# Brining all my datas together as a AML analyst I would focus on a specific like location San Fransisco from Merchant ABC coprt and look under transaction made between $1500 - $4000 to prevent future fraud from occuring
+```
